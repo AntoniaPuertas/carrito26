@@ -1,3 +1,5 @@
+
+//array de productos, cada producto es un objeto con id, nombre, descripción, imagen y precio
 const productos = [
     {id: 1, nombre: "Cuna", descripcion: "Cuna blanca moderna", imagen: "cuna.jpg", precio: 340.00},
     {id: 2, nombre: "Dormitorio", descripcion: "Dormitorio individual", imagen: "dormitorio.jpg", precio: 640.00},
@@ -16,11 +18,23 @@ const totalCarrito = document.getElementById('cart-total') //total del carrito, 
 const contador = document.getElementById('contador') //para mostrar cuantos artículos hay en el carrito
 
 //array para guardar los productos del carrito
-let carritoProductos = []
-let numeroProductos = 0
+//si hay productos en el localStorage los cargamos, si no hay creamos un array vacío
+let carritoProductos = JSON.parse(localStorage.getItem('carrito')) || []
 
-//funcion para mostrar los productos
+//Guarda el número de productos que hay en el carrito
+let numeroProductos = parseFloat(localStorage.getItem('numeroProductos')) || 0
+
+// if(parseFloat(localStorage.getItem('numeroProductos'))){
+//     numeroProductos = parseFloat(localStorage.getItem('numeroProductos'))
+// }else{
+//     numeroProductos = 0
+// }
+
+actualizarCarrito() //llamada a la función para mostrar el carrito en pantalla
+
+//funcion para mostrar los productos en pantalla
 function mostrarProductos(){
+    //recorre el array de productos y crea el html para mostrarlos en pantalla
     productosContainer.innerHTML = productos.map((producto) => 
         `
         <div class="product-card">
@@ -32,13 +46,22 @@ function mostrarProductos(){
         </div>
         `
     ).join('')
-    //crea una constante para todos los botonees
+    //crea una constante para todos los botones
     const btnAddCarrito = document.querySelectorAll('.addProducto')
+    //añade eventos para los botones de añadir producto al carrito
     btnAddCarrito.forEach(btn => {
         btn.addEventListener('click', addCarrito)
     })
 }
 
+function actualizarLocalStorage(){
+    //guardar en localStorage el carrito de la compra
+    localStorage.setItem('carrito', JSON.stringify(carritoProductos))
+    //guardar en localStorage el número de productos que hay en el carrito
+    localStorage.setItem('numeroProductos', numeroProductos)
+}
+
+//funcion para añadir un producto al carrito
 function addCarrito(e){
     const productoId = parseFloat(e.target.getAttribute('data-id')) 
     const productoComprado = productos.find(producto => producto.id === productoId)
@@ -55,11 +78,13 @@ function addCarrito(e){
         productoCarrito.cantidad = 1 //si no existe le añadimos una línea al carrito
         carritoProductos.push(productoCarrito)
     }
-    // console.log(carritoProductos)
+    
     numeroProductos++
+    actualizarLocalStorage()
     actualizarCarrito()
 }
 
+//funcion para actualizar el carrito en pantalla
 function actualizarCarrito(){
     itemsCarrito.innerHTML = carritoProductos.map((item) =>
         `
@@ -102,6 +127,7 @@ function actualizarCarrito(){
     
 }
 
+//funcion para sumar un producto del carrito
 function sumarProducto(e){
     const productoId = parseFloat(e.target.getAttribute('data-id')) 
     //busco la línea del carrito correspondiente
@@ -109,9 +135,11 @@ function sumarProducto(e){
 
     lineaCarrito.cantidad = lineaCarrito.cantidad + 1
     numeroProductos++
+    actualizarLocalStorage()
     actualizarCarrito()
 }
 
+//funcion para restar un producto del carrito
 function restarProducto(e){
     const productoId = parseFloat(e.target.getAttribute('data-id')) 
     //busco la línea del carrito correspondiente
@@ -124,6 +152,7 @@ function restarProducto(e){
         lineaCarrito.cantidad = lineaCarrito.cantidad - 1
     }
     numeroProductos--
+    actualizarLocalStorage()
     actualizarCarrito()
 }
 
@@ -131,4 +160,5 @@ mostrarCarrito.addEventListener('click', () => {
     carrito.classList.toggle('open')
 })
 
+//llamada a la función para mostrar los productos en pantalla
 mostrarProductos()
